@@ -4,6 +4,7 @@ Esse curso foi feito para a plataforma [Digital Innovation One](https://digitali
 
 O curso consiste em um sistema de filmes, com a possibilidade de cadastros, edições, listagem e visualização dos filmes.
 
+
 ## Instalação
 
 1. clone o repositório `git clone git@github.com:RenanRB/curso-angular.git`
@@ -24,4 +25,80 @@ Execute `ng generate component nome-do-componente` para criar um novo componente
 ## Build
 
 Execute `ng build` para gerar o compilado do projeto. O projeto vai ser criado dentro do diretório `dist/`. Adicionar `--prod` junto comando de build para gerar minificado e pronto para o ambiente de produção.
+
+## Bibliotecas necessárias 
+
+Angular Material 
+Json Server 
+NGX-Infinite-Scroll
+RxJs
+
+
+## Angular Material 
+
+Implementação oficial para o angular do material DEsign a especificação de designs para interfaces interativas do google e cobre desde pequenos elementos 
+como icones e cores até elementos maiores como nagevação, cards imagens e mais 
+
+ng new nome_projeto -> cria um novo projeto em angular 
+npm install 
+ng add @angular/material
+
+
+### RxJs 
+
+É uma biblioteca para programação reativa usando Observables , para facilitar a composição de código assincrono ou baseado em retorno de chamada 
+
+
+## json server 
+
+json-server --watch db.json
+
+
+# estrutura do projeto 
+
+rota base topo -> rota filmes -> rota filho cadastro , listar 
+o que se declara no appmodule você pode usar em toda a aplicação 
+
+o arquivo tslint permite dizer que todos nossos componentes utilizam a tag 
+com a palavra dio  (padronizam os componentes que f oram nossa criacao)
+```JS
+{
+    "extends": "../tslint.json",
+    "rules": {
+        "directive-selector": [
+            true,
+            "attribute",
+            "dio",
+            "camelCase"
+        ],
+        "component-selector": [
+            true,
+            "element",
+            "dio",
+            "kebab-case"
+        ]
+    }
+}
+```
+# cirando um formulario reativo 
+
+material moduloe -> validator 
+
+```Js 
+  private criarFormulario(filme: Filme): void {
+    this.cadastro = this.fb.group({
+      titulo: [filme.titulo, [Validators.required, Validators.minLength(2), Validators.maxLength(256)]],
+      urlFoto: [filme.urlFoto, [Validators.minLength(10)]],
+      dtLancamento: [filme.dtLancamento, [Validators.required]],
+      descricao: [filme.descricao],
+      nota: [filme.nota, [Validators.required, Validators.min(0), Validators.max(10)]],
+      urlIMDb: [filme.urlIMDb, [Validators.minLength(10)]],
+      genero: [filme.genero, [Validators.required]]
+    });
+  }
+```
+
+formGroup bom para criar vários formularios semelhantes 
+
+
 

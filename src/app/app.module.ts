@@ -30,7 +30,7 @@ import { AlertaComponent } from './shared/components/alerta/alerta.component';
     AppRoutingModule
   ],
   entryComponents: [AlertaComponent],
-  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'pt' }],
+  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'pt' }], /// formato de datas brasileiro 
   bootstrap: [AppComponent]
 })
 export class AppModule { }
