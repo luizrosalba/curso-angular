@@ -12,7 +12,7 @@ export class InputNumberComponent {
   @Input() titulo: string;
   @Input() formGroup: FormGroup;
   @Input() controlName: string;
-  @Input() minimo = 0;
+  @Input() minimo = 0; /// o angular já entende que eh number 
   @Input() maximo = 10;
   @Input() step = 1;
 
