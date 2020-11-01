@@ -166,7 +166,10 @@ ex:
 
 ## Elvis operator (navegação segura)
 
+
 verificar se tem erros e depois verifica a validação de um campo de um form
+Elvis Operator ou operador de navegação segura serve para garantir que se a variável no HTML estiver null ou undefined o Angular não tente acessar o valor dela.
+
 
 em angular para controlar o form primeiro precisa estourar um erro para que 
 posteriormente ocorra a validação 
@@ -217,4 +220,285 @@ export class ValidarCamposService {
 ```
 
 
+## componentizando inputs
+
+- ng g c shared/components/campos/input-text --nospec problemas ( nao há modulo ! )
+- ng g m shared/components/campos --nospec  (modulo criado )
+- ng g c shared/components/campos/input-text --nospec problemas ( criado sem problemas  )
+- se o modulo nao conseguir identificar o modulo faça --module caminho_do_modulo
+- erro - os componentes deve ter dio na frente do componente pedimos isso no tslint
+- 
+
+- criamos input date, input-number, input-select , input-textarea
+
+identificados pelo modulo src\app\shared\components\campos\campos.module.ts
+
+para que o componente seja visivel em outros locais precisamos exporta-los com exports
+
+``` JS
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { InputTextComponent } from './input-text/input-text.component';
+import { InputNumberComponent } from './input-number/input-number.component';
+import { InputDateComponent } from './input-date/input-date.component';
+import { InputTextareaComponent } from './input-textarea/input-textarea.component';
+import { InputSelectComponent } from './input-select/input-select.component';
+import { MaterialModule } from '../../material/material.module';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+
+@NgModule({
+  declarations: [
+    InputTextComponent,
+    InputNumberComponent,
+    InputDateComponent,
+    InputTextareaComponent,
+    InputSelectComponent
+  ],
+  imports: [
+    CommonModule,
+    MaterialModule,
+    ReactiveFormsModule,
+    FormsModule
+  ],
+  exports: [
+    InputTextComponent,
+    InputNumberComponent,
+    InputDateComponent,
+    InputTextareaComponent,
+    InputSelectComponent
+  ]
+})
+export class CamposModule { }
+```
+
+cuidado ! o angula reclama se vc precisar passar uma string e ao inves disso vc passa um databind
+ <dio-input-text titulo="Link Foto" controlName="urlFoto" [formGroup]="cadastro"></dio-input-text>
+ 
+ <dio-input-text titulo="Link Foto" [controlName]="urlFoto" [formGroup]="cadastro"></dio-input-text> daria erro 
+            
+Error -> incorretly implements interface OnInit ( não estamos usando on init podemos tirar )
+
+### deixando as mensagens de erros dinamicas 
+
+Deixando as mensagens personalizadas 
+
+``` JS
+<div [formGroup]="formGroup">
+  <mat-form-field class="full-width">
+    <input  matInput
+            type="number"
+            [min]="minimo"
+            [max]="maximo"
+            [step]="step"
+            [placeholder]="titulo"
+            [name]="controlName"
+            [formControlName]="controlName">
+    <mat-error *ngIf="validacao.hasErrorValidar(formControl, 'required')">Campo obrigatório</mat-error>
+    <mat-error *ngIf="validacao.hasErrorValidar(formControl, 'min')">
+      Campo precisa ter no mínimo o valor {{validacao.lengthValidar(formControl, 'min')}}
+    </mat-error>
+    <mat-error *ngIf="validacao.hasErrorValidar(formControl, 'max')">
+      Campo pode ter no máximo o valor {{validacao.lengthValidar(formControl, 'max')}}
+    </mat-error>
+  </mat-form-field>
+</div>
+```
+ 
+
+ ### passando um array com os valores para o nosso componente 
+
+ ``` JS
+ <mat-toolbar class="app-title">Cadastrar Filme</mat-toolbar>
+<div class="main-div">
+  <mat-card class="center width50" *ngIf="cadastro" >
+    /// desligamos o autocomplete e o dizemos que o html nao deve validar o html   autocomplete="off" novalidate [formGroup]="cadastro"  pois a validacao esta sendo feita pelo angular 
+
+    <form autocomplete="off" novalidate [formGroup]="cadastro" (ngSubmit)="submit()" (ngReset)="reiniciarForm()">
+      <mat-card-content>
+        <dio-input-text titulo="Título *" controlName="titulo" [formGroup]="cadastro"></dio-input-text>
+        <dio-input-text titulo="Link Foto" controlName="urlFoto" [formGroup]="cadastro"></dio-input-text>
+        <dio-input-date titulo="Data de Lançamento *" controlName="dtLancamento" [formGroup]="cadastro"></dio-input-date>
+        <dio-input-textarea titulo="Descrição" controlName="descricao" [formGroup]="cadastro"></dio-input-textarea>
+        <dio-input-number titulo="Nota IMDb *" controlName="nota" step="0.1" [formGroup]="cadastro"></dio-input-number>
+        <dio-input-text titulo="Link IMDb" controlName="urlIMDb" [formGroup]="cadastro"></dio-input-text>
+        <dio-input-select titulo="Gênero *" [opcoes]="generos" controlName="genero" [formGroup]="cadastro"></dio-input-select>
+      </mat-card-content>
+      <mat-card-actions>
+        <button type="submit" color="accent" mat-raised-button>Salvar</button>
+        <button type="reset" color="warn" mat-raised-button>Cancelar</button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+</div>
+
+ ```
+
+as opções agora vem por array 
+
+ ``` JS 
+ <div [formGroup]="formGroup">
+  <mat-form-field class="full-width">
+    <mat-select [placeholder]="titulo" [formControlName]="controlName">
+      <mat-option *ngFor="let opcao of opcoes" [value]="opcao">{{opcao}}</mat-option>
+    </mat-select>
+    <mat-error *ngIf="validacao.hasErrorValidar(formControl, 'required')">Campo obrigatório</mat-error>
+  </mat-form-field>
+</div>
+
+ ```
+
+ criamos tambem o  cadastro por generos 
+
+
+ ``` Js 
+
+ import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ValidarCamposService } from 'src/app/shared/components/campos/validar-campos.service';
+import { Filme } from 'src/app/shared/models/filme';
+import { FilmesService } from 'src/app/core/filmes.service';
+import { AlertaComponent } from 'src/app/shared/components/alerta/alerta.component';
+import { Alerta } from 'src/app/shared/models/alerta';
+
+@Component({
+  selector: 'dio-cadastro-filmes',
+  templateUrl: './cadastro-filmes.component.html',
+  styleUrls: ['./cadastro-filmes.component.scss']
+})
+export class CadastroFilmesComponent implements OnInit {
+
+  id: number;
+  cadastro: FormGroup;
+  generos: Array<string>;
+
+  constructor(public validacao: ValidarCamposService,
+              public dialog: MatDialog,
+              private fb: FormBuilder,
+              private filmeService: FilmesService,
+              private router: Router,
+              private activatedRoute: ActivatedRoute) { }
+
+  get f() {
+    return this.cadastro.controls;
+  }
+
+  ngOnInit(): void {
+    this.id = this.activatedRoute.snapshot.params['id'];
+    if (this.id) {
+      this.filmeService.visualizar(this.id)
+        .subscribe((filme: Filme) => this.criarFormulario(filme));
+    } else {
+      this.criarFormulario(this.criarFilmeEmBranco());
+    }
+  /// vetor de generos 
+    this.generos = ['Ação', 'Romance', 'Aventura', 'Terror', 'Ficção cientifica', 'Comédia', 'Aventura', 'Drama'];
+
+  }
+
+  submit(): void {
+    this.cadastro.markAllAsTouched();
+    if (this.cadastro.invalid) {
+      return;
+    }
+
+    const filme = this.cadastro.getRawValue() as Filme;
+    if (this.id) {
+      filme.id = this.id;
+      this.editar(filme);
+    } else {
+      this.salvar(filme);
+    }
+  }
+
+  reiniciarForm(): void {
+    this.cadastro.reset();
+  }
+
+  private criarFormulario(filme: Filme): void {
+    this.cadastro = this.fb.group({
+      titulo: [filme.titulo, [Validators.required, Validators.minLength(2), Validators.maxLength(256)]],
+      urlFoto: [filme.urlFoto, [Validators.minLength(10)]],
+      dtLancamento: [filme.dtLancamento, [Validators.required]],
+      descricao: [filme.descricao],
+      nota: [filme.nota, [Validators.required, Validators.min(0), Validators.max(10)]],
+      urlIMDb: [filme.urlIMDb, [Validators.minLength(10)]],
+      genero: [filme.genero, [Validators.required]]
+    });
+  }
+
+  private criarFilmeEmBranco(): Filme {
+    return {
+      id: null,
+      titulo: null,
+      dtLancamento: null,
+      urlFoto: null,
+      descricao: null,
+      nota: null,
+      urlImdb: null,
+      genero: null
+    } as Filme;
+  }
+
+  private salvar(filme: Filme): void {
+    this.filmeService.salvar(filme).subscribe(() => {
+      const config = {
+        data: {
+          btnSucesso: 'Ir para a listagem',
+          btnCancelar: 'Cadastrar um novo filme',
+          corBtnCancelar: 'primary',
+          possuirBtnFechar: true
+        } as Alerta
+      };
+      const dialogRef = this.dialog.open(AlertaComponent, config);
+      dialogRef.afterClosed().subscribe((opcao: boolean) => {
+        if (opcao) {
+          this.router.navigateByUrl('filmes');
+        } else {
+          this.reiniciarForm();
+        }
+      });
+    },
+    () => {
+      const config = {
+        data: {
+          titulo: 'Erro ao salvar o registro!',
+          descricao: 'Não conseguimos salvar seu registro, favor tentar novamente mais tarde',
+          corBtnSucesso: 'warn',
+          btnSucesso: 'Fechar'
+        } as Alerta
+      };
+      this.dialog.open(AlertaComponent, config);
+    });
+  }
+
+  private editar(filme: Filme): void {
+    this.filmeService.editar(filme).subscribe(() => {
+      const config = {
+        data: {
+          descricao: 'Seu registro foi atualizado com sucesso!',
+          btnSucesso: 'Ir para a listagem',
+        } as Alerta
+      };
+      const dialogRef = this.dialog.open(AlertaComponent, config);
+      dialogRef.afterClosed().subscribe(() => this.router.navigateByUrl('filmes'));
+    },
+    () => {
+      const config = {
+        data: {
+          titulo: 'Erro ao editar o registro!',
+          descricao: 'Não conseguimos editar seu registro, favor tentar novamente mais tarde',
+          corBtnSucesso: 'warn',
+          btnSucesso: 'Fechar'
+        } as Alerta
+      };
+      this.dialog.open(AlertaComponent, config);
+    });
+  }
+
+}
+
+
+ ```
 
