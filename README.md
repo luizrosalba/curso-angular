@@ -101,4 +101,120 @@ material moduloe -> validator
 formGroup bom para criar vários formularios semelhantes 
 
 
+```HTML
+<mat-toolbar class="app-title">Cadastrar Filme</mat-toolbar>
+<div class="main-div">
+  <mat-card class="center width50" *ngIf="cadastro" >
+    <form autocomplete="off" novalidate [formGroup]="cadastro" (ngSubmit)="submit()" (ngReset)="reiniciarForm()">
+      <mat-card-content>
+        <dio-input-text titulo="Título *" controlName="titulo" [formGroup]="cadastro"></dio-input-text>
+        <dio-input-text titulo="Link Foto" controlName="urlFoto" [formGroup]="cadastro"></dio-input-text>
+        <dio-input-date titulo="Data de Lançamento *" controlName="dtLancamento" [formGroup]="cadastro"></dio-input-date>
+        <dio-input-textarea titulo="Descrição" controlName="descricao" [formGroup]="cadastro"></dio-input-textarea>
+        <dio-input-number titulo="Nota IMDb *" controlName="nota" step="0.1" [formGroup]="cadastro"></dio-input-number>
+        <dio-input-text titulo="Link IMDb" controlName="urlIMDb" [formGroup]="cadastro"></dio-input-text>
+        <dio-input-select titulo="Gênero *" [opcoes]="generos" controlName="genero" [formGroup]="cadastro"></dio-input-select>
+      </mat-card-content>
+      <mat-card-actions>
+        <button type="submit" color="accent" mat-raised-button>Salvar</button>
+        <button type="reset" color="warn" mat-raised-button>Cancelar</button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+</div>
+
+```
+
+ngReset (reiniciar form)
+
+Atenção ! Métodos são por padrão publicos 
+
+
+### calendario 
+
+- dar uma olhada no componente shared componetes campos input date 
+
+
+ <dio-input-date titulo="Data de Lançamento *" controlName="dtLancamento" [formGroup]="cadastro"></dio-input-date>
+
+
+mat-error : Componente responsável pelos erros no material ui 
+
+ex: 
+<mat-error *ngIf="validacao.hasErrorValidar(formControl, 'minlength')">
+      Campo precisa ter no mínimo {{validacao.lengthValidar(formControl, 'minlength')}} caracteres
+    </mat-error>
+
+
+``` JS 
+  hasErrorValidar(control: AbstractControl, errorName: string): boolean {
+    if ((control.dirty || control.touched) && this.hasError(control, errorName)) {
+      return true;
+    }
+    return false;
+  }
+
+  ``` 
+  cadastro touched é quando já tiver sido tocado 
+  cadastro dirty eh quando jah apresentou o erro 
+  this.hasError é um metodo que criamos generico para apresentar erros 
+
+
+ faz que quando houver cadastro , todos os campos sejam marcados como clicados 
+
+   this.cadastro.markAllAsTouched();
+
+## Elvis operator (navegação segura)
+
+verificar se tem erros e depois verifica a validação de um campo de um form
+
+em angular para controlar o form primeiro precisa estourar um erro para que 
+posteriormente ocorra a validação 
+
+uma forma de simplificar esse processo é usar : 
+
+f.titulo.errors?.required 
+f.titulo.errors?.minlength 
+
+se houver erros verifique o required  senao retorne falso 
+
+## serviço para validação de erros 
+
+- evitando a replicação de codigos 
+- vamos criar um service para centralizar toda verificação de errors
+- npm install @schematics/angular@7.0.7 --save-dev  (dependencia em desenvolvimento so existe enquanto estiver desenvolvimento, não é isntalada junto com o aplicativo em producao )
+- ng g s shared/components/campos/validarCampos
+- jah vem com injectable no root , ou seja qquer lugar do sistema tera acesso a esse servico 
+
+```JS
+import { Injectable } from '@angular/core';
+import { AbstractControl } from '@angular/forms';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ValidarCamposService {
+
+  constructor() { }
+
+  hasErrorValidar(control: AbstractControl, errorName: string): boolean {
+    if ((control.dirty || control.touched) && this.hasError(control, errorName)) {
+      return true;
+    }
+    return false;
+  }
+
+  hasError(control: AbstractControl, errorName: string): boolean {
+    return control.hasError(errorName);
+  }
+
+  lengthValidar(control: AbstractControl, errorName: string): number {
+    const error = control.errors[errorName];
+    return error.requiredLength || error.min || error.max || 0;
+  }
+}
+
+```
+
+
 
