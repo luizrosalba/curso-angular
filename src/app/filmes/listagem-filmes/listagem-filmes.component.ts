@@ -18,7 +18,8 @@ export class ListagemFilmesComponent implements OnInit {
     pagina: 0,
     limite: 4
   };
-  filmes: Filme[] = [];
+  
+  filmes: Filme[] = [];  /// uma lista de filmes vazia inicializada como vazia 
   filtrosListagem: FormGroup;
   generos: Array<string>;
 
@@ -58,11 +59,14 @@ export class ListagemFilmesComponent implements OnInit {
   }
 
   private listarFilmes(): void {
-    this.config.pagina++;
+    this.config.pagina++; /// autoincrementa a pagina a cada chamada do metodo 
     this.filmesService.listar(this.config)
-      .subscribe((filmes: Filme[]) => this.filmes.push(...filmes));
+      .subscribe((filmes: Filme[]) => this.filmes.push(...filmes)); 
+      ///   filmes: Filme[] = [];  /// uma lista de filmes vazia inicializada como vazia 
+
   }
 
+  /// apaga o que esta na pagina e adiciona somente o resultado da pesquisa 
   private resetarConsulta(): void {
     this.config.pagina = 0;
     this.filmes = [];

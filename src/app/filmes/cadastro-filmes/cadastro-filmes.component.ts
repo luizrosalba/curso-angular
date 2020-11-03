@@ -48,7 +48,7 @@ export class CadastroFilmesComponent implements OnInit {
     if (this.cadastro.invalid) {
       return;
     }
-
+    /// garante que ele será do tipo filme 
     const filme = this.cadastro.getRawValue() as Filme;
     if (this.id) {
       filme.id = this.id;
@@ -62,6 +62,7 @@ export class CadastroFilmesComponent implements OnInit {
     this.cadastro.reset();
   }
 
+  /// exclusivo para este arquivo ts (private)
   private criarFormulario(filme: Filme): void {
     this.cadastro = this.fb.group({
       titulo: [filme.titulo, [Validators.required, Validators.minLength(2), Validators.maxLength(256)]],
@@ -86,6 +87,7 @@ export class CadastroFilmesComponent implements OnInit {
       genero: null
     } as Filme;
   }
+
 
   private salvar(filme: Filme): void {
     this.filmeService.salvar(filme).subscribe(() => {

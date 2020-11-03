@@ -8,3 +8,5 @@ export interface Filme {
   urlIMDb?: string;
   genero: string;
 }
+// ? significa opcional 
+// exatamente os mesmos nomes do banco 

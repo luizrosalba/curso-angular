@@ -23,6 +23,7 @@ export class FilmesService {
     return this.http.put<Filme>(url + filme.id, filme);
   }
 
+  /// retorna um array de filmes 
   listar(config: ConfigPrams): Observable<Filme[]> {
     const configPrams = this.configService.configurarParametros(config);
     return this.http.get<Filme[]>(url, {params: configPrams});

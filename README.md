@@ -166,20 +166,21 @@ ex:
 
 ## Elvis operator (navegação segura)
 
+Também chamado de safe navigation ou navegação segura. Colocamos o ponto ? . Na atual versão do 
+TS ainda não tem suporte 
 
 verificar se tem erros e depois verifica a validação de um campo de um form
 Elvis Operator ou operador de navegação segura serve para garantir que se a variável no HTML estiver null ou undefined o Angular não tente acessar o valor dela.
 
 
-em angular para controlar o form primeiro precisa estourar um erro para que 
-posteriormente ocorra a validação 
+em angular para controlar o form primeiro precisa estourar um erro para que posteriormente ocorra a validação 
 
 uma forma de simplificar esse processo é usar : 
 
 f.titulo.errors?.required 
 f.titulo.errors?.minlength 
 
-se houver erros verifique o required  senao retorne falso 
+se houver erros verifique o required senao retorne falso 
 
 ## serviço para validação de erros 
 
@@ -384,6 +385,8 @@ export class CadastroFilmesComponent implements OnInit {
     return this.cadastro.controls;
   }
 
+  /// subscribe siginifica se inscrever para receber o retorno assíncrono desta ação 
+  /// subscrica comunica ao observable que ele deve ser executado mesmo quando nao usamos seu retorno
   ngOnInit(): void {
     this.id = this.activatedRoute.snapshot.params['id'];
     if (this.id) {
@@ -501,4 +504,443 @@ export class CadastroFilmesComponent implements OnInit {
 
 
  ```
+
+### pasta core 
+
+armazena todos os servicos back-end para a aplicação 
+
+### pasta shared -> models 
+
+Contem os exports das interfaces usadas na aplicação 
+
+```JS
+export interface Filme {
+  id?: number;
+  titulo: string;
+  urlFoto?: string;
+  dtLancamento: Date;
+  descricao?: string;
+  nota: number;
+  urlIMDb?: string;
+  genero: string;
+}
+// ? significa opcional 
+// exatamente os mesmos nomes do banco 
+```
+sempre que for usar o http client inserir no modulo, ou entao no modulo da app dai todos veem 
+deixar todos os imports do anguloas juntos por organizaocao 
+
+### componente modal 
+
+vamos usar um modal do angular material 
+
+copiamos dialog overview example do angular material (html e ts )
+
+ng g c shared/componets/alert --nospec
+
+
+-- module app.module.ts ( importou automaticamente no app.module.ts)
+
+aproveitamos o codigo do angular material html 
+
+
+- colocamos dio  na frente do selector 
+
+- importamos o construtor 
+
+- data any pois nao sabemos qual interface vamos usar para o dialog genérico 
+
+- primeiro botao é sempre o de sucesso e o outro de cancelar 
+
+- mat-dialog-close pode passar um objeto apos o clique 
+
+ 
+``` JS 
+<h1 mat-dialog-title>{{alerta.titulo}}</h1>
+<div mat-dialog-content>
+  <p>{{alerta.descricao}}</p>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button
+          [color]="alerta.corBtnSucesso"
+          cdkFocusInitial
+          [mat-dialog-close]="true">
+    {{alerta.btnSucesso}}
+  </button>
+  <button mat-raised-button
+          [color]="alerta.corBtnCancelar"
+          [mat-dialog-close]="false"
+          *ngIf="alerta.possuirBtnFechar" >
+    {{alerta.btnCancelar}}
+  </button>
+</div>
+
+```
+probelmas  - o componente não está sendo instanciado 
+
+o dialog que adicionamos eh um entry component 
+
+entry components não precisam ser instanciados , quando ele é acessado , 
+automaticamente ele é instanciado e ele já pode ser acessado de qquer ponto do sistema 
+
+solução , adicionar o entrecomponents no app module (será inicializado quando a aplicação inicializar )
+
+
+``` Js 
+@NgModule({
+  declarations: [
+    AppComponent,
+    TopoComponent,
+    RodapeComponent,
+    AlertaComponent,
+  ],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    LayoutModule,
+    MaterialModule,
+    AppRoutingModule
+  ],
+  entryComponents: [AlertaComponent],
+  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'pt' }], /// formato de datas brasileiro 
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+```
+
+## configurações para modal 
+
+ng g i shared/models/alerta
+
+```JS 
+export interface Alerta {
+  titulo?: string;
+  descricao?: string;
+  btnSucesso?: string;
+  btnCancelar?: string;
+  corBtnSucesso?: string;
+  corBtnCancelar?: string;
+  possuirBtnFechar?: boolean;
+}
+```
+
+Exemplo de utilizacao 
+
+``` JS
+ private salvar(filme: Filme): void {
+    this.filmeService.salvar(filme).subscribe(() => {
+      // configurações 
+      const config = {
+        data: {
+          btnSucesso: 'Ir para a listagem',
+          btnCancelar: 'Cadastrar um novo filme',
+          corBtnCancelar: 'primary',
+          possuirBtnFechar: true
+        } as Alerta
+      };
+      /// retorno 
+      const dialogRef = this.dialog.open(AlertaComponent, config);
+      dialogRef.afterClosed().subscribe((opcao: boolean) => {
+        if (opcao) {
+          this.router.navigateByUrl('filmes');
+        } else {
+          this.reiniciarForm();
+        }
+      });
+    }, /// erro quando nao consegue adicionar 
+    () => {
+      const config = {
+        data: {
+          titulo: 'Erro ao salvar o registro!',
+          descricao: 'Não conseguimos salvar seu registro, favor tentar novamente mais tarde',
+          corBtnSucesso: 'warn',
+          btnSucesso: 'Fechar'
+        } as Alerta
+      };
+      this.dialog.open(AlertaComponent, config);
+    });
+  }
+  /// poderiamos colocar uma parte que será executada sempre mesmo com erro ou sucesso 
+
+```
+
+ng g s nome-serviço ou ‘ng generate service nome-serviço
+
+## Listagem de resultados e melhoria de performance 
+-criamos o componente listagem filmes component 
+
+## Scroll infinito 
+
+- o do angular material nao eh muito bacana , dificil de usar 
+
+- o do npm ngx-infinite-scroll mais interessante 
+
+- npm install ngx-infinite-scroll
+
+- colocamos no modulo filmes 
+
+```JS
+<div  class="home-content"
+      infiniteScroll
+      (scrolled)="onScroll()"
+      *ngIf="filmes.length; else semRegistro">
+```
+
+```JS
+  onScroll(): void {
+    this.listarFilmes();
+  }
+```
+
+
+paginate (já existe no json server)
+```
+  config: ConfigPrams = {
+    pagina: 0,
+    limite: 4
+  };
+```
+
+```JS 
+
+  /// retorna um array de filmes 
+  listar(config: ConfigPrams): Observable<Filme[]> {
+    const configPrams = this.configService.configurarParametros(config);
+    return this.http.get<Filme[]>(url, {params: configPrams});
+  }
+```
+
+o scroll deve ser feito em relação ao card externo e nao ao interno 
+
+```JS
+<div  class="home-content"
+      infiniteScroll
+      (scrolled)="onScroll()"
+      *ngIf="filmes.length; else semRegistro">
+```
+### criamos o formulario de filtro 
+
+uma linha no  listagem de filmes que permite filtrar os filtros existentes 
+
+### fazendo ordenacao e filtragem 
+
+Quando houver uma alteracao no texto o value changes dispara 
+
+```JS 
+ this.filtrosListagem.get('texto').valueChanges
+    .pipe(debounceTime(400))  /// 
+    .subscribe((val: string) => {
+      this.config.pesquisa = val;
+      this.resetar
+```
+
+
+como passar filtro e valor no json server ? Foi a pagiuna do jsonserver 
+
+### usando httpparams 
+
+criamos uma nova interface para despoluir a pesquisa (list)
+
+``` JS 
+import { CampoGenerico } from './campo-generico';
+
+export interface ConfigPrams {
+  pagina?: number;
+  limite?: number;
+  pesquisa?: string;
+  campo?: CampoGenerico;
+}
+```
+
+criamos uma nova interface para poder usar um campo genérico na pesquisa que nao precisa ser so por generpo 
+
+``` JS 
+export interface CampoGenerico {
+  tipo: string;
+  valor: any;
+}
+```
+
+criamos um servico para validar os configurar os parametros e despoluir o metodo list 
+
+``` JS 
+import { Injectable } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
+import { ConfigPrams } from '../shared/models/config-prams';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ConfigParamsService {
+
+  constructor() { }
+
+  configurarParametros(config: ConfigPrams): HttpParams {
+    let httpParams = new HttpParams();
+    if (config.pagina) {
+      httpParams = httpParams.set('_page', config.pagina.toString());
+    }
+    if (config.limite) {
+      httpParams = httpParams.set('_limit', config.limite.toString());
+    }
+    if (config.pesquisa) {
+      httpParams = httpParams.set('q', config.pesquisa);
+    }
+    if (config.campo) {
+      httpParams = httpParams.set(config.campo.tipo, config.campo.valor.toString());
+    }
+    httpParams = httpParams.set('_sort', 'id');
+    httpParams = httpParams.set('_order', 'desc');
+
+    return httpParams;
+  }
+}
+
+```
+
+
+### ng template e melhoria de performance 
+
+ se nao houver foto ou descrição uma foto ou descricao padrão será adicionada 
+ <img mat-card-image [src]="filme.urlFoto || semFoto" >
+
+  <p class="quebrar-linha">
+        {{filme.descricao || 'Nenhuma descrição informada'}}
+      </p>
+
+
+-alteramos o width e o heitght com tamanho fixo 
+
+- adicionando uma mensagem quando nao hovuer filmes 
+
+``` Html
+<div  class="home-content"
+      infiniteScroll
+      (scrolled)="onScroll()"
+      *ngIf="filmes.length; else semRegistro">
+
+```
+
+``` HTML
+<ng-template #semRegistro>
+  <h1 class="full-width main-div">Nenhum registro encontrado!</h1>
+</ng-template>
+```
+
+
+
+Performance -> para não executar uma consulta a cada letra 
+import { debounceTime } from 'rxjs/operators';
+espera 400 ms para executar a consulta 
+```JS 
+ this.filtrosListagem.get('texto').valueChanges
+    .pipe(debounceTime(400))  /// 
+    .subscribe((val: string) => {
+      this.config.pesquisa = val;
+      this.resetar
+```
+
+
+### finalizando o projeto 
+
+- criando componente para visualizar excluir filmes 
+
+-criamos uam nova rota para o id 
+
+
+com : estamos dizendo que estamos passando um parametro ao colocar filmes cai no em branco 
+ao colocar cadastro vai para cadastro 
+em qquer outro caso , identifica como um id se tiver algum codigo ele vai para o VisualizarFilmesComponent 
+
+``` JS 
+ path: 'filmes',
+    children: [
+      {
+        path: '',
+        component: ListagemFilmesComponent
+      },
+      {
+        path: 'cadastro',
+        children: [
+          {
+            path: '',
+            component: CadastroFilmesComponent
+          },
+          {
+            path: ':id',
+            component: CadastroFilmesComponent
+          }
+        ]
+      },
+      {
+        path: ':id',
+        component: VisualizarFilmesComponent,
+        pathMatch: 'full'
+      }
+    ]
+  },
+
+```
+pega o parametro da rota ativa id 
+
+``` JS 
+ constructor(public dialog: MatDialog,
+              private activatedRoute: ActivatedRoute,
+              private router: Router,
+              private filmesService: FilmesService) { }
+ngOnInit() {
+    this.id = this.activatedRoute.snapshot.params['id'];
+    this.visualizar();
+  }
+
+ private visualizar(): void {
+    this.filmesService.visualizar(this.id).subscribe((filme: Filme) => this.filme = filme);
+  }
+
+```
+-material list 
+``` HTML
+<mat-list *ngIf="filme; else semRegistro">
+  <mat-list-item> Título: {{filme.titulo}} </mat-list-item>
+  <mat-list-item> Data de lançamento: {{filme.dtLancamento | date: 'dd/MM/yyyy' }} </mat-list-item>
+  <mat-list-item> Gênero: {{filme.genero}} </mat-list-item>
+  <mat-list-item class="quebrar-linha"> Descrição: {{filme.descricao}} </mat-list-item>
+  <mat-list-item> Nota: <a [href]="filme.urlIMDb" target="_blank"> {{filme.nota}}</a> </mat-list-item>
+  <img mat-card-image [src]="filme.urlFoto || semFoto" >
+</mat-list>
+<mat-card>
+  <mat-card-actions>
+    <button color="accent" mat-raised-button (click)="editar()">Editar</button>
+    <button color="warn" mat-raised-button (click)="excluir()">Excluir</button>
+  </mat-card-actions>
+</mat-card>
+
+<ng-template #semRegistro>
+  <h1 class="full-width main-div">Nenhum registro encontrado!</h1>
+</ng-template>
+``` 
+
+### enviando um filme para edição 
+
+- criamos o método editar em visualizar 
+
+- criamos a rota no cadastro que recebe o id , como a rota tem mais de uma opção colocamos children 
+
+```JS 
+  {
+        path: 'cadastro',
+        children: [
+          {
+            path: '',
+            component: CadastroFilmesComponent
+          },
+          {
+            path: ':id',
+            component: CadastroFilmesComponent
+          }
+        ]
+      },
+```
 
