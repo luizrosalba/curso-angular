@@ -1,10 +1,8 @@
 # Curso Intermediário de Angular - Digital Innovation One
 
-Esse curso foi feito para a plataforma [Digital Innovation One](https://digitalinnovation.one/)
+Esse curso foi feito pela plataforma [Digital Innovation One](https://digitalinnovation.one/) e consiste em um sistema de gerenciamento de filmes construido em angular, com a possibilidade de cadastros, edições, listagem e visualização dos filmes.
 
-O curso consiste em um sistema de filmes, com a possibilidade de cadastros, edições, listagem e visualização dos filmes.
-
-
+![](./Capturar.PNG)
 ## Instalação
 
 1. clone o repositório `git clone git@github.com:RenanRB/curso-angular.git`
